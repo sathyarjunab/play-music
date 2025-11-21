@@ -15,9 +15,10 @@
     },
     "exactOptionalPropertyTypes": true
   },
-  "include": ["./src/types/**/*", "./src/**/*"],
+  "include": ["types/**/*", "./src/**/*"],
   "ts-node": {
     "transpileOnly": false,
     "require": ["tsconfig-paths/register"]
-  }
+  },
+  "files": ["./src/types/custom.d.ts"]
 }

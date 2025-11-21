@@ -1,23 +1,43 @@
 "use client";
+import AppContext from "@/app/AuthContext";
+import { loginValidation } from "@/validator/user";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { useContext } from "react";
+import { useForm } from "react-hook-form";
+import zod from "zod";
+import api from "./../../lib/axios";
+
+type IFormInput = zod.infer<typeof loginValidation>;
 
 export default function Login() {
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const { handleSubmit, register } = useForm<IFormInput>({
+    resolver: zodResolver(loginValidation),
+  });
+  const { login } = useContext(AppContext);
+  const router = useRouter();
+
+  const onSubmit = async (data: IFormInput) => {
+    const token = (
+      await api.post("/auth/login", data, { withCredentials: true })
+    ).data.token;
+    login(token);
+    router.push("/home");
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white">
       <div className="bg-black p-8 rounded-xl shadow-lg w-full max-w-md border-white border-2">
         <h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-        <form className="space-y-5" onSubmit={handleSubmit}>
+        <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
           <div>
             <label className="block mb-1 font-medium">Email</label>
             <input
               type="email"
               placeholder="you@example.com"
               required
+              {...register("email")}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>
@@ -27,6 +47,7 @@ export default function Login() {
               type="password"
               placeholder="Enter your password"
               required
+              {...register("password")}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
             />
           </div>

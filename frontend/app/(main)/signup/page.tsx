@@ -1,20 +1,29 @@
 "use client";
 
+import AppContext from "@/app/AuthContext";
 import { signupValidation } from "@/validator/user";
 import { zodResolver } from "@hookform/resolvers/zod"; // <- import this
 import Link from "next/link";
+import { useContext } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import zod from "zod";
 import api from "./../../lib/axios";
+import { useRouter } from "next/navigation";
 
 type IFormInput = zod.infer<typeof signupValidation>;
 
 export default function Signup() {
+  const { login } = useContext(AppContext);
   const { register, handleSubmit } = useForm<IFormInput>({
     resolver: zodResolver(signupValidation),
   });
-  const onSubmit: SubmitHandler<IFormInput> = (data) => {
-    const user = api.post("/auth/signup", data);
+  const router = useRouter();
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
+    const token = (
+      await api.post("/auth/signup", data, { withCredentials: true })
+    ).data.token;
+    login(token);
+    router.push("/home");
   };
 
   return (

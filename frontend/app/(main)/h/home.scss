@@ -1,0 +1,48 @@
+.main-section {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100dvw;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  height: 100%;
+  gap: 3rem;
+  align-items: center;
+  padding: 3rem 0;
+  border: 0.1rem solid #000;
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .nav {
+    width: 200px;
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .nav {
+    width: 120px;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .nav {
+    width: 100px;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+}
+
+.single-day-regular {
+  font-family: "Single Day", cursive;
+  font-weight: 700;
+  font-style: normal;
+}

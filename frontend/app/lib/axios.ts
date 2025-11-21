@@ -10,8 +10,6 @@ const api = axios.create({
 
 // Add a request interceptor
 api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  console.log(config);
-
   const c = config as typeof config & { skipAuth?: boolean };
 
   if (!c.skipAuth) {
@@ -19,6 +17,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     if (token) {
       c.headers.set("Authorization", `Bearer ${token}`);
     }
+    c.withCredentials = true;
   }
   return c;
 });

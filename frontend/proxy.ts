@@ -1,14 +1,21 @@
-import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // This function can be marked `async` if using `await` inside
 export async function proxy(request: NextRequest) {
-  const cookieStore = await cookies();
-  const user = cookieStore.get("user");
+  const token = request.cookies.get("auth")?.value;
 
-  if (!user) {
+  if (!token) {
     return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  //TODO: Remove this check
+  if (request.nextUrl.pathname === "/h") {
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+
+  if (request.nextUrl.pathname === "/") {
+    return NextResponse.redirect(new URL("/home", request.url));
   }
 
   return NextResponse.next();
