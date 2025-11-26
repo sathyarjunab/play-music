@@ -11,6 +11,12 @@ const room = new Schema({
     },
   ],
   songStack: [{ type: Schema.Types.String, required: true }],
+  isPrivate: { type: Boolean, required: true },
+  password: { type: String, required: false },
+  hasLimit: { type: Boolean, required: true },
+  limitPerUser: { type: Number, required: false },
+  generateQR: { type: Boolean, default: false },
+  roomCode: { type: String, required: true },
 });
 
 type RoomType = InferSchemaType<typeof room> & { _id: mongoose.Types.ObjectId };

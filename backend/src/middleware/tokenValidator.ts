@@ -3,16 +3,23 @@ import jwt from "jsonwebtoken";
 import { UserType } from "../schema/user";
 
 const tokenValidator = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization;
-  if (!token) return res.status(401).send({ message: "unauthorized" });
+  try {
+    const auth = req.headers.authorization;
+    if (!auth) return res.status(401).send({ message: "unauthorized" });
 
-  const user = jwt.verify(token, process.env.JWT_SECRET!) as Omit<
-    UserType,
-    "password"
-  >;
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : auth;
 
-  req.user = user;
-  next();
+    const user = jwt.verify(token, process.env.JWT_SECRET!) as Omit<
+      UserType,
+      "password"
+    >;
+
+    req.user = user;
+    next();
+  } catch (err) {
+    console.log(err);
+    res.status(500).send({ message: "something went wrong", err });
+  }
 };
 
 export default tokenValidator;

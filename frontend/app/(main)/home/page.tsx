@@ -1,6 +1,6 @@
 import HeroSection from "@/app/components/demo/hero-section";
+import SearchComponent from "@/app/components/demo/search";
 import { SongCard } from "@/app/components/demo/song-card";
-import { Search } from "lucide-react";
 
 export default function pageSection() {
   const recentSongs = [
@@ -64,21 +64,12 @@ export default function pageSection() {
       image: "from-green-600 to-teal-600",
     },
   ];
+
   return (
     <div className="flex-1 overflow-y-auto pb-32">
       <div className="p-8">
-        {/* Search Bar */}
-        <div className="mb-8 relative">
-          <Search
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
-            size={20}
-          />
-          <input
-            type="text"
-            placeholder="Search for songs, artists, albums..."
-            className="w-full bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 transition-colors"
-          />
-        </div>
+        {/* Search */}
+        <SearchComponent />
 
         {/* Hero Section */}
         <HeroSection />

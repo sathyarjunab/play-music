@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AppProvider } from "./AuthContext";
+import { Sidebar } from "./components/demo/side-bar";
+import PlayerBar from "./components/demo/play-bar";
+import StoreProvider from "./storeContext";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +29,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} body single-day-regular`}
-      >
-        <AppProvider>{children}</AppProvider>
+      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+        <AppProvider>
+          <StoreProvider>
+            {" "}
+            <div className="flex h-screen bg-linear-to-br from-gray-900 via-purple-900 to-black overflow-hidden">
+              <Sidebar />
+              {children}
+              <PlayerBar />
+            </div>
+          </StoreProvider>
+        </AppProvider>
       </body>
     </html>
   );

@@ -1,7 +1,8 @@
 import { Request, Response, Router } from "express";
-import mongoose from "mongoose";
+import mongoose, { mongo, Types } from "mongoose";
 import Room from "schema/room";
 import User from "schema/user";
+import { generateCode } from "util/sendReq";
 import Zod from "zod";
 import { ca, id } from "zod/v4/locales";
 
@@ -168,8 +169,51 @@ route.post("/reject_req", async (req: Request, res: Response) => {
 
 route.post("/create_room", async (req: Request, res: Response) => {
   try {
-    const { name } = Zod.object({ name: Zod.string() }).parse(req.body);
-    await Room.create({ name, user: [req.user?._id], owner: req.user?._id });
+    const reqBody = Zod.object({
+      roomName: Zod.string(),
+      isPrivate: Zod.boolean().default(false),
+      password: Zod.string().optional().nullable(),
+      hasLimit: Zod.boolean().default(false),
+      limitPerUser: Zod.number().optional().nullable(),
+      generateQR: Zod.boolean().default(false),
+    })
+      .refine((val) => {
+        if (val.isPrivate && !val.password) {
+          return false;
+        } else if (!val.isPrivate && val.password) {
+          return false;
+        }
+        return true;
+      })
+      .refine((val) => {
+        if (val.hasLimit && !val.limitPerUser) {
+          return false;
+        } else if (!val.hasLimit && val.limitPerUser) {
+          return false;
+        }
+        return true;
+      })
+      .parse(req.body);
+
+    let code;
+
+    while (true) {
+      code = generateCode();
+      const room = await Room.findOne({ roomCode: code });
+      if (!room) break;
+    }
+
+    await Room.create({
+      user: [req.user?._id],
+      owner: req.user?._id,
+      name: reqBody.roomName,
+      isPrivate: reqBody.isPrivate,
+      password: reqBody.password,
+      hasLimit: reqBody.hasLimit,
+      limitPerUser: reqBody.limitPerUser,
+      generateQR: reqBody.generateQR,
+      roomCode: code,
+    });
     return res.status(200).send({ message: "Room created" });
   } catch (err) {
     console.log(err);
@@ -177,14 +221,22 @@ route.post("/create_room", async (req: Request, res: Response) => {
   }
 });
 
+route.get("/list_room", async (req: Request, res: Response) => {
+  const rooms = await Room.find({
+    owner: req.user?._id,
+  });
+
+  res.status(200).send({ rooms });
+});
+
 route.post("/join_room", async (req: Request, res: Response) => {
-  const { roomId, userId } = Zod.object({
-    roomId: Zod.string().refine((val) => mongoose.Types.ObjectId.isValid(val)),
+  const { roomCode, userId } = Zod.object({
+    roomCode: Zod.string(),
     userId: Zod.string().refine((val) => mongoose.Types.ObjectId.isValid(val)),
   }).parse(req.body);
 
   try {
-    const room = await Room.findById(roomId);
+    const room = await Room.findById(roomCode);
     if (!room) throw new Error("Room not found");
 
     if (!room.owner.equals(req.user?._id)) {
@@ -193,13 +245,20 @@ route.post("/join_room", async (req: Request, res: Response) => {
         .send({ message: "your are not the owner of this room" });
     }
 
+    // check if the user exists
     const user = await User.findById(userId);
     if (!user) throw new Error("User not found");
 
-    if (!room.members.some((id) => id.equals(user._id))) {
-      room.members.push(user._id);
-      await room.save();
-    }
+    // check if user is friends with room owner
+    const owner = await User.findById(room.owner);
+    owner?.friends.includes(new Types.ObjectId(userId));
+
+    // check if user is already in the room
+    if (room.members.some((id) => id.equals(user._id)))
+      throw new Error("User already in the room");
+
+    room.members.push(user._id);
+    await room.save();
 
     return res.status(200).send({ message: "Room joined" });
   } catch (err) {
@@ -238,6 +297,23 @@ route.post("/remove_user", async (req, res) => {
     console.log(err);
     res.status(500).send({ message: "something went wrong" });
   }
+});
+
+route.get("/search_users", async (req: Request, res: Response) => {
+  const { search } = await Zod.object({
+    search: Zod.string().optional(),
+  }).parseAsync(req.query);
+
+  if (!search || search.trim() === "") res.status(200).send({ users: [] });
+
+  const users = await User.find({
+    name: {
+      $regex: search,
+      $options: "i",
+    },
+  });
+
+  res.status(200).send({ users });
 });
 
 export default route;

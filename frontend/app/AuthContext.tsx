@@ -51,7 +51,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setToken = (token: string) => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("token", token);
+      localStorage.setItem("Token", token);
       setTokenState(token);
     }
   };
