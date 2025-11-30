@@ -1,16 +1,5 @@
 "use client";
 
-export type UserType = {
-  name: string;
-  email: string;
-  password: string;
-  friends: string[];
-  requestsSent: string[];
-  requestsReceived: string[];
-  accepted: string[];
-  rejected: string[];
-};
-
 type defaultContextType = {
   user: UserType | null;
   token: string | null;
@@ -26,6 +15,7 @@ const defaultContext: defaultContextType = {
 };
 
 import { createContext, useState } from "react";
+import { UserType } from "./types/user";
 
 const AppContext = createContext<defaultContextType>(defaultContext);
 export function AppProvider({ children }: { children: React.ReactNode }) {

@@ -2,25 +2,29 @@
 
 import api from "@/app/lib/axios";
 import { useContext, useEffect, useRef, useState } from "react";
-import { Loader } from "lucide-react";
+import { Loader, Plus } from "lucide-react";
 import AppContext from "@/app/AuthContext";
+import { UserType } from "@/app/types/user";
 
 export default function Friends() {
   const [search, setSearch] = useState<string>("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useContext(AppContext);
 
   async function fetchUser() {
-    const res = await api.get("/users/search_users", {
-      withCredentials: true,
-      params: {
-        search,
-      },
-    });
-    setUsers(res.data.users);
-    setLoading(false);
+    try {
+      const res = await api.get("/users/search_users", {
+        withCredentials: true,
+        params: { search },
+      });
+      setUsers(res.data.users);
+    } catch (err) {
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -40,6 +44,16 @@ export default function Friends() {
     }
     fetcher();
   }, [search]);
+
+  async function handleSendFriendReq(user: UserType) {
+    console.log(user);
+    const result = await api.post(
+      "/users/send_req",
+      { id: user._id },
+      { withCredentials: true }
+    );
+    console.log(result);
+  }
 
   return (
     <div className="flex w-full h-screen">
@@ -66,12 +80,20 @@ export default function Friends() {
             users.map((user) => {
               return (
                 <div
-                  className="border-2 border-amber-500 rounded-2xl m-2 p-2 bg-gray-700/40 text-white"
-                  key={user.id}
+                  className="flex p-5 justify-between items-center border-2 border-amber-500 rounded-2xl m-2  bg-gray-700/40 text-white"
+                  key={user._id}
                   onClick={() => {}}
                 >
-                  <p>{user.name}</p>
-                  <p>{user.email}</p>
+                  <div>
+                    <p>{user.name}</p>
+                    <p>{user.email}</p>
+                  </div>
+                  <Plus
+                    onClick={() => {
+                      handleSendFriendReq(user);
+                    }}
+                    className="cursor-pointer hover:bg-gray-200/20 rounded-3xl"
+                  />
                 </div>
               );
             })
@@ -82,11 +104,11 @@ export default function Friends() {
             return (
               <div
                 className="border-2 border-amber-500 rounded-2xl m-2 p-2 bg-gray-700/40 text-white"
-                key={user}
+                key={user._id}
                 onClick={() => {}}
               >
-                <p>{user}</p>
-                {/* <p>{user.email}</p> */}
+                <p>{user.name}</p>
+                <p>{user.email}</p>
               </div>
             );
           })}

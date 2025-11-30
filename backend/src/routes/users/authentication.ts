@@ -65,13 +65,6 @@ route.post("/login", async (req, res) => {
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
         });
-        res.cookie("auth", token, {
-          httpOnly: true,
-          secure: false,
-          sameSite: "lax",
-          path: "/",
-          maxAge: 1000 * 60 * 60 * 24 * 30, // 30 days
-        });
         return res.status(200).json({ message: "user logged in", token });
       }
     });

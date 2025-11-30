@@ -27,13 +27,11 @@ route.post("/send_req", async (req: Request, res: Response) => {
   session.startTransaction();
 
   try {
-    const { email } = Zod.object({ email: Zod.string().email() }).parse(
-      req.body
-    );
+    const { id } = Zod.object({ id: Zod.string() }).parse(req.body);
     const user = await User.findById(req.user?._id).session(session);
     if (!user) throw new Error("User not found");
 
-    const toSend = await User.findOne({ email }).session(session);
+    const toSend = await User.findOne({ _id: id }).session(session);
     if (!toSend) throw new Error("Target user not found");
 
     const eq = (a: any, b: any) =>
@@ -311,6 +309,7 @@ route.get("/search_users", async (req: Request, res: Response) => {
       $regex: search,
       $options: "i",
     },
+    _id: { $ne: req.user?._id },
   });
 
   res.status(200).send({ users });
